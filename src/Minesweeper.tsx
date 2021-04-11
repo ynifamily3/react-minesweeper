@@ -44,6 +44,17 @@ function Minesweeper() {
     [send]
   );
 
+  // 오른쪽 막기
+  useEffect(() => {
+    const handler = (e: any) => {
+      e.preventDefault();
+    };
+    document.addEventListener("contextmenu", handler);
+    return () => {
+      document.removeEventListener("contextmenu", handler);
+    };
+  }, []);
+
   // 디버그
   useEffect(() => {
     handleStart();
@@ -120,7 +131,7 @@ function Minesweeper() {
             ))}
           </tbody>
         </table>
-        <table style={{ marginLeft: "3em" }}>
+        {/* <table style={{ marginLeft: "3em" }}>
           <tbody>
             {board.map((row, i) => (
               <tr key={"row-" + i}>
@@ -144,7 +155,7 @@ function Minesweeper() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table> */}
       </div>
     </div>
   );
