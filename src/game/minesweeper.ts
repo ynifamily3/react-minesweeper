@@ -7,6 +7,9 @@ export type Cell = {
 
 export type Board = Cell[][];
 
+const dr = [-1, 1, 0, 0, -1, -1, 1, 1]; // 상 하 좌 우 좌상 우상 좌하 우하
+const dc = [0, 0, -1, 1, -1, 1, -1, 1];
+
 export function createBoard(size: number): Board {
   return Array.from<unknown, Cell[]>({ length: size }, () =>
     Array.from<unknown, Cell>({ length: size }, () => ({
@@ -58,10 +61,22 @@ export function checkOpened(board: Board, row: number, col: number): boolean {
 }
 
 // Flag를 놓는다. (범위체크 후, 이미 open된것은 pass)
-export function setFlag(board: Board, row: number, col: number): void {}
+export function setFlag(board: Board, row: number, col: number): void {
+  // 이미 연 박스는 냅둔다.
+  if (checkOpened(board, row, col)) {
+    return;
+  }
+  board[row][col].isFlag = true;
+}
 
 // Flag를 푼다. (범위체크 후, 이미 open된것은 pass)
-export function removeFlag(board: Board, row: number, col: number): void {}
+export function removeFlag(board: Board, row: number, col: number): void {
+  // 이미 연 박스는 냅둔다.
+  if (checkOpened(board, row, col)) {
+    return;
+  }
+  board[row][col].isFlag = false;
+}
 
 // cell을 open한다. (범위체크 후)
 export function openCell(board: Board, row: number, col: number): void {
@@ -86,8 +101,6 @@ export function countAdjacentBombs(
     return checkBombCell(board, row, col) ? 1 : 0;
   };
 
-  const dr = [-1, 1, 0, 0, -1, -1, 1, 1]; // 상 하 좌 우 좌상 우상 좌하 우하
-  const dc = [0, 0, -1, 1, -1, 1, -1, 1];
   let cnt = 0;
   for (let i = 0; i < dr.length; i++) {
     cnt += cntBomb(row + dr[i], col + dc[i]);
@@ -105,6 +118,8 @@ export function openAllCellsWithoutAdjacentBombs(
   if (visited[`${row},${col}`]) return;
   if (!checkValidCell(board, row, col)) return;
   if (checkOpened(board, row, col)) return;
+  // 깃발은 패싱한다. (사용자의 판단이므로 +-+)
+  if (board[row][col].isFlag) return;
   // 지뢰를 열어버릴 경우
   if (checkBombCell(board, row, col)) {
     openCell(board, row, col); // 지뢰블럭 연다 (잘가)
@@ -117,12 +132,59 @@ export function openAllCellsWithoutAdjacentBombs(
   }
   // 자기 자신 엶 (0일 것이다.)
   openCell(board, row, col);
-  const dr = [-1, 1, 0, 0, -1, -1, 1, 1]; // 상 하 좌 우 좌상 우상 좌하 우하
-  const dc = [0, 0, -1, 1, -1, 1, -1, 1];
   for (let i = 0; i < dr.length; i++) {
     openAllCellsWithoutAdjacentBombs(board, row + dr[i], col + dc[i], {
       ...visited,
       [`${row},${col}`]: true,
     });
+  }
+}
+
+// 지뢰 1개를 놓는다.
+function putBomb(board: Board, row: number, col: number) {
+  if (checkBombCell(board, row, col)) return;
+  board[row][col].isBomb = true;
+
+  for (let i = 0; i < dr.length; i++) {
+    if (checkBombCell(board, row + dr[i], col + dc[i])) continue;
+    if (!checkValidCell(board, row + dr[i], col + dc[i])) continue;
+    board[row + dr[i]][col + dc[i]].number = countAdjacentBombs(
+      board,
+      row + dr[i],
+      col + dc[i]
+    );
+  }
+}
+
+// 지뢰를 제거한다.
+function removeBomb(board: Board, row: number, col: number) {
+  if (!checkBombCell(board, row, col)) return;
+  board[row][col].isBomb = false;
+  for (let i = 0; i < dr.length; i++) {
+    if (checkBombCell(board, row + dr[i], col + dc[i])) continue;
+    if (!checkValidCell(board, row + dr[i], col + dc[i])) continue;
+
+    board[row + dr[i]][col + dc[i]].number = countAdjacentBombs(
+      board,
+      row + dr[i],
+      col + dc[i]
+    );
+  }
+}
+
+export function firstHandicap(board: Board, row: number, col: number) {
+  const randomIdxFactory = () => Math.floor(Math.random() * board.length);
+  while (true) {
+    const newRow = randomIdxFactory();
+    const newCol = randomIdxFactory();
+    if (
+      row !== newRow &&
+      col !== newCol &&
+      board[newRow][newCol].isBomb === false
+    ) {
+      removeBomb(board, row, col);
+      putBomb(board, newRow, newCol);
+      break;
+    }
   }
 }

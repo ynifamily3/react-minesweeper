@@ -6,12 +6,14 @@ import {
   removeFlag,
   openAllCellsWithoutAdjacentBombs,
   setFlag,
+  firstHandicap,
 } from "../game/minesweeper";
 
 type Context = {
   board: Board;
   openedBomb: boolean;
   totalBombs: number;
+  firstTouch: boolean;
 };
 
 type StartEvent = { type: "START"; board: Board; totalBombs: number };
@@ -35,6 +37,7 @@ const initialContext: Context = {
   board: [],
   openedBomb: false,
   totalBombs: 0,
+  firstTouch: true,
 };
 
 export const minesweeperMachine = createMachine<Context, Event, State>(
@@ -130,9 +133,18 @@ export const minesweeperMachine = createMachine<Context, Event, State>(
         board: (context, _event) => {
           const event = _event as OpenCellEvent;
           const newBoard: Board = JSON.parse(JSON.stringify(context.board));
+          // 처음 오픈할 때 불행하게도 지뢰가 있다면 지뢰가 없는 것과 바꿔치기한다.
+
+          if (
+            context.firstTouch &&
+            newBoard[event.row][event.col].isBomb === true
+          ) {
+            firstHandicap(newBoard, event.row, event.col);
+          }
           openAllCellsWithoutAdjacentBombs(newBoard, event.row, event.col);
           return newBoard;
         },
+        firstTouch: (_, __) => false,
       }),
       checkBomb: assign({
         openedBomb: (context, _event) => {

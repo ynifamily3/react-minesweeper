@@ -10,7 +10,6 @@ function Minesweeper() {
   const handleStart = useCallback(() => {
     const totalBombs = 10;
     const board = placeBombs(createBoard(9), totalBombs);
-    console.log(board);
     send({ type: "START", board, totalBombs });
   }, [send]);
 
@@ -21,6 +20,13 @@ function Minesweeper() {
   const handleOpen = useCallback(
     (row: number, col: number) => () => {
       send({ type: "OPEN_CELL", row, col });
+    },
+    [send]
+  );
+  const handleContextMenu = useCallback(
+    (row: number, col: number, flag: boolean) => (e: any) => {
+      e.preventDefault();
+      send({ type: flag ? "FLAG" : "REMOVE_FLAG", row, col });
     },
     [send]
   );
@@ -41,7 +47,7 @@ function Minesweeper() {
         / 폭탄: {totalBombs}
       </div>
       <button onClick={state.matches("idle") ? handleStart : handleReset}>
-        state.matches("idle")?"시작하기":"다시하기"
+        {state.matches("idle") ? "시작하기" : "다시하기"}
       </button>
       <div style={{ display: "flex" }}>
         <table>
@@ -60,12 +66,19 @@ function Minesweeper() {
                         boxSizing: "border-box",
                       }}
                       disabled={col.isOpen || state.matches("ended")}
-                      onClick={handleOpen(i, j)}
+                      onClick={!col.isFlag ? handleOpen(i, j) : () => {}}
+                      onContextMenu={handleContextMenu(i, j, !col.isFlag)}
                     >
                       {!state.matches("ended") &&
-                        (col.isOpen ? col.number : "_")}
+                        (col.isOpen ? col.number : col.isFlag ? "🚩" : "_")}
                       {state.matches("ended") &&
-                        (col.isBomb ? "X" : col.isOpen ? col.number : "_")}
+                        (col.isBomb
+                          ? "X"
+                          : col.isOpen
+                          ? col.number
+                          : col.isFlag
+                          ? "🚩"
+                          : "_")}
                     </button>
                   </td>
                 ))}
@@ -73,7 +86,7 @@ function Minesweeper() {
             ))}
           </tbody>
         </table>
-        <table style={{ marginLeft: "3em" }}>
+        {/* <table style={{ marginLeft: "3em" }}>
           <tbody>
             {board.map((row, i) => (
               <tr key={"row-" + i}>
@@ -97,7 +110,7 @@ function Minesweeper() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table> */}
       </div>
     </div>
   );
