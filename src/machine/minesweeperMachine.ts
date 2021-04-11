@@ -55,17 +55,17 @@ export const minesweeperMachine = createMachine<Context, Event, State>(
       },
       playing: {
         type: "atomic",
+        always: [
+          {
+            target: "ended",
+            cond: "hasOpenedBomb", // 가드로 판별함
+          },
+          {
+            target: "ended",
+            cond: "hasOpenAllCells",
+          },
+        ],
         on: {
-          "": [
-            {
-              target: "ended",
-              cond: "hasOpenedBomb", // 가드로 판별함
-            },
-            {
-              target: "ended",
-              cond: "hasOpenAllCells",
-            },
-          ],
           FLAG: {
             actions: "setFlag",
           },
