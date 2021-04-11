@@ -1,11 +1,16 @@
 import { useMachine } from "@xstate/react";
 import { useCallback, useEffect } from "react";
-import { createBoard, placeBombs } from "./game/minesweeper";
+import {
+  Board,
+  canOpenAdjs,
+  createBoard,
+  placeBombs,
+} from "./game/minesweeper";
 import { minesweeperMachine } from "./machine/minesweeperMachine";
 
 function Minesweeper() {
   const [state, send] = useMachine(minesweeperMachine, { devTools: true });
-  const { board, totalBombs, openedBomb } = state.context;
+  const { board, totalBombs, openedBomb, numFlags } = state.context;
 
   const handleStart = useCallback(() => {
     const totalBombs = 10;
@@ -30,6 +35,14 @@ function Minesweeper() {
     },
     [send]
   );
+  const handleOpenAdjs = useCallback(
+    (board: Board, row: number, col: number) => (e: any) => {
+      e.preventDefault();
+      const availableAdjs = canOpenAdjs(board, row, col);
+      send({ type: "OPEN_ADJ", coords: availableAdjs });
+    },
+    [send]
+  );
 
   // 디버그
   useEffect(() => {
@@ -44,10 +57,24 @@ function Minesweeper() {
           : openedBomb
           ? "게임 오버"
           : "게임 클리어!"}{" "}
-        / 폭탄: {totalBombs}
+        / 지뢰: {totalBombs - numFlags > 0 ? totalBombs - numFlags : "??"}
+      </div>
+      <div>
+        <div style={{ marginBottom: "1em" }}>
+          <strong>게임방법</strong>
+          <ul>
+            <li>기본적으론 알고 계신 그 규칙이 그대로 적용됩니다.</li>
+            <li>클릭: 상자 열기</li>
+            <li>우클릭: 깃발 꽂기 / 해제</li>
+            <li>
+              이미 연 곳에서 우클릭: 확실한 모든 영역 열기 (깃발로 표시한 안 연
+              갯수 = 해당 연 곳의 숫자)
+            </li>
+          </ul>
+        </div>
       </div>
       <button onClick={state.matches("idle") ? handleStart : handleReset}>
-        {state.matches("idle") ? "시작하기" : "다시하기"}
+        state.matches("idle") ? "시작하기" : "다시하기"
       </button>
       <div style={{ display: "flex" }}>
         <table>
@@ -64,10 +91,17 @@ function Minesweeper() {
                         width: "100%",
                         height: "100%",
                         boxSizing: "border-box",
+                        opacity: col.isOpen ? 0.5 : 1,
                       }}
-                      disabled={col.isOpen || state.matches("ended")}
-                      onClick={!col.isFlag ? handleOpen(i, j) : () => {}}
-                      onContextMenu={handleContextMenu(i, j, !col.isFlag)}
+                      disabled={state.matches("ended")}
+                      onClick={
+                        !col.isOpen && !col.isFlag ? handleOpen(i, j) : () => {}
+                      }
+                      onContextMenu={
+                        !col.isOpen
+                          ? handleContextMenu(i, j, !col.isFlag)
+                          : handleOpenAdjs(board, i, j)
+                      }
                     >
                       {!state.matches("ended") &&
                         (col.isOpen ? col.number : col.isFlag ? "🚩" : "_")}
@@ -86,7 +120,7 @@ function Minesweeper() {
             ))}
           </tbody>
         </table>
-        {/* <table style={{ marginLeft: "3em" }}>
+        <table style={{ marginLeft: "3em" }}>
           <tbody>
             {board.map((row, i) => (
               <tr key={"row-" + i}>
@@ -110,7 +144,7 @@ function Minesweeper() {
               </tr>
             ))}
           </tbody>
-        </table> */}
+        </table>
       </div>
     </div>
   );

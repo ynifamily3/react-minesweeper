@@ -122,6 +122,7 @@ export function openAllCellsWithoutAdjacentBombs(
   if (board[row][col].isFlag) return;
   // 지뢰를 열어버릴 경우
   if (checkBombCell(board, row, col)) {
+    console.log("플래그 잘못 세우고 지뢰를 연거 같아요.");
     openCell(board, row, col); // 지뢰블럭 연다 (잘가)
     return;
   }
@@ -187,4 +188,26 @@ export function firstHandicap(board: Board, row: number, col: number) {
       break;
     }
   }
+}
+
+// 주변 8개에서 확실히 열 수 있는 블록의 [row, col] 쌍을 리턴받는다. (플래그)
+// 주변 플래그 수 === 자기 개수이면 open된것들을 다 열어도 됨.
+export function canOpenAdjs(board: Board, row: number, col: number) {
+  const ret = [];
+  const myNum = board[row][col].number;
+  let cnt = 0;
+  for (let i = 0; i < dr.length; i++) {
+    if (!checkValidCell(board, row + dr[i], col + dc[i])) continue;
+    if (board[row + dr[i]][col + dc[i]].isFlag) {
+      cnt++;
+    } else if (!board[row + dr[i]][col + dc[i]].isOpen) {
+      ret.push([row + dr[i], col + dc[i]]);
+    }
+  }
+  // cnt가 더 적은 경우는 사용자가 이상하게 깃발을 쳤을 때이다.
+  // 모르는 블록이 더 많으면 열지 않는다.
+  if (cnt === myNum) {
+    return ret;
+  }
+  return [];
 }
