@@ -185,6 +185,7 @@ export function firstHandicap(board: Board, row: number, col: number) {
     ) {
       removeBomb(board, row, col);
       putBomb(board, newRow, newCol);
+      board[row][col].number = countAdjacentBombs(board, row, col);
       break;
     }
   }

@@ -120,7 +120,7 @@ function Minesweeper() {
             ))}
           </tbody>
         </table>
-        {/* <table style={{ marginLeft: "3em" }}>
+        <table style={{ marginLeft: "3em" }}>
           <tbody>
             {board.map((row, i) => (
               <tr key={"row-" + i}>
@@ -144,7 +144,7 @@ function Minesweeper() {
               </tr>
             ))}
           </tbody>
-        </table> */}
+        </table>
       </div>
     </div>
   );
