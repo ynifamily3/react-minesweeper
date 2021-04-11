@@ -74,7 +74,7 @@ function Minesweeper() {
         </div>
       </div>
       <button onClick={state.matches("idle") ? handleStart : handleReset}>
-        state.matches("idle") ? "시작하기" : "다시하기"
+        {state.matches("idle") ? "시작하기" : "다시하기"}
       </button>
       <div style={{ display: "flex" }}>
         <table onContextMenu={(e) => e.preventDefault()}>
