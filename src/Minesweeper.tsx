@@ -44,17 +44,6 @@ function Minesweeper() {
     [send]
   );
 
-  // 오른쪽 막기
-  useEffect(() => {
-    const handler = (e: any) => {
-      e.preventDefault();
-    };
-    document.addEventListener("contextmenu", handler);
-    return () => {
-      document.removeEventListener("contextmenu", handler);
-    };
-  }, []);
-
   // 디버그
   useEffect(() => {
     handleStart();
@@ -88,7 +77,7 @@ function Minesweeper() {
         state.matches("idle") ? "시작하기" : "다시하기"
       </button>
       <div style={{ display: "flex" }}>
-        <table>
+        <table onContextMenu={(e) => e.preventDefault()}>
           <tbody>
             {board.map((row, i) => (
               <tr key={"row-" + i}>
