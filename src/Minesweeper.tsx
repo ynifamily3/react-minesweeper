@@ -61,7 +61,7 @@ function Minesweeper() {
       </div>
       <div>
         <div style={{ marginBottom: "1em" }}>
-          <strong>게임방법</strong>
+          <strong>게임 방법</strong>
           <ul>
             <li>기본적으론 알고 계신 그 규칙이 그대로 적용됩니다.</li>
             <li>클릭: 상자 열기</li>
@@ -71,6 +71,18 @@ function Minesweeper() {
               갯수 = 해당 연 곳의 숫자)
             </li>
           </ul>
+        </div>
+        <div>
+          <strong>소스코드</strong>
+          <div>
+            <a
+              href="https://github.com/ynifamily3/react-minesweeper"
+              target="_blank"
+              rel="noreferrer"
+            >
+              https://github.com/ynifamily3/react-minesweeper
+            </a>
+          </div>
         </div>
       </div>
       <button onClick={state.matches("idle") ? handleStart : handleReset}>
